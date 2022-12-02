@@ -7,14 +7,14 @@ import roslib; roslib.load_manifest('ardrone_tutorials')
 import rospy
 
 # Load the DroneController class, which handles interactions with the drone
-from drone_controller import BasicDroneController
+from drone_controller import BasicDroneController, PIDController
 
 
 # TF Libraries
 import tf2_ros
 from geometry_msgs.msg import Twist
 
-
+"""
 # Our controller definition, note that we extend the DroneVideoDisplay class
 class PDIController():
 	def __init__(self):
@@ -40,7 +40,7 @@ class PDIController():
 			trans = tfBuffer.lookup_transform(source_frame, target_frame, rospy.Time())
 			# pass commands to controller
 			controller.SetCommand(self.roll, self.pitch, self.yaw_velocity, self.z_velocity)
-
+"""
 # Setup the application
 if __name__=='__main__':
 	payload_frame = "payload_frame"
@@ -54,14 +54,14 @@ if __name__=='__main__':
 	# Create controller to communicate with the drone
 	controller = BasicDroneController()
 	# Create PDI controller to navigate drone
-	navigator = PDIController()
+	navigator = PDIController(controller.getGazeboState())
 
 	# Take off
 	controller.SendTakeoff()
 	
 	# Navigate to first payload
-	navigator.navigate_to(drone_frame, payload_frame)
-
+	navigator.navigate_to(drone_frame, [2, 3, 4]) #hard-coded destination
+"""Minial Testing
 	# Descend down
 	controller.Descend()
 
@@ -80,3 +80,4 @@ if __name__=='__main__':
 
 	# Land
 	controller.SendLand()
+"""
