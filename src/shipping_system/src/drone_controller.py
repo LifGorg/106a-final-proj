@@ -87,4 +87,107 @@ class BasicDroneController(object):
 		# The previously set command is then sent out periodically if the drone is flying
 		if self.status == DroneStatus.Flying or self.status == DroneStatus.GotoHover or self.status == DroneStatus.Hovering:
 			self.pubCommand.publish(self.command)
+	
+	def navigate_to(self,PID,dest):
+		rate = rospy.Rate(10)
+		PID.setInitialTime(time.time())
+		while not rospy.is_shutdown():
+			rospy.sleep(1)
+			
+			x, y, z, Reached = PID.step(self.getGazeboState(), dest)
+			
+			if Reached:
+				break
 
+			self.SetCommand(x, y, z)
+			self.SendCommand()
+			rate.sleep()
+			
+	def getGazeboState(self):
+		model_coordinates = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
+		quad_coordinates = model_coordinates('quadrotor', '')
+		z = quad_coordinates.pose.position.z
+		y = quad_coordinates.pose.position.y
+		x = quad_coordinates.pose.position.x
+		# print(quad_coordinates)
+		return quad_coordinates
+
+import time
+class PIDController:
+	def __init__(self,iniState):
+		self.iniState = iniState
+		self.K_I = 0.01
+		self.K_D = 0.5
+		self.K_P = 0.6
+		self.error_history = 0
+
+		self.errorThreshold = 0.05
+		self.last_error_x =0 
+		self.last_error_y =0 
+		self.last_error_z =0 
+
+		self.integral_x = 0
+		self.integral_y = 0
+		self.integral_z = 0
+
+	def setInitialTime(self,t=0):
+		self.last_time = t
+	
+	def step(self,currentState,finalState):
+		shouldStop = False	
+		z_c = currentState.pose.position.z
+		y_c = currentState.pose.position.y
+		x_c = currentState.pose.position.x
+
+		z_f = finalState[2]
+		y_f = finalState[1]
+		x_f = finalState[0]
+
+		e_t_x = x_f - x_c
+		e_t_y = y_f - y_c
+		e_t_z = z_f - z_c
+
+		P_x = self.K_P * e_t_x 
+		P_y = self.K_P * e_t_y 
+		P_z = self.K_P * e_t_z 
+
+		self.current_time = time.time()
+
+		delta_time = self.current_time - self.last_time
+
+		
+		self.integral_x += e_t_x * delta_time
+		self.integral_y += e_t_y * delta_time	
+		self.integral_z += e_t_z * delta_time
+
+		
+
+		I_x = self.K_I * self.integral_x
+		I_y = self.K_I * self.integral_y
+		I_z = self.K_I * self.integral_z
+
+		der_x = (e_t_x - self.last_error_x) /delta_time
+		der_y = (e_t_y - self.last_error_y) /delta_time
+		der_z = (e_t_z - self.last_error_z) /delta_time
+
+		D_x = self.K_D * der_x
+		D_y = self.K_D * der_y
+		D_z = self.K_D * der_z
+		
+		self.last_time = self.current_time
+		self.last_error_x = e_t_x
+		self.last_error_y = e_t_y
+		self.last_error_z = e_t_z
+
+		O_x = P_x + I_x + D_x
+		O_y = P_y + I_y + D_y
+		O_z = P_z + I_z + D_z
+		
+		#print("Error: x:{} y:{} z:{}".format(e_t_x,e_t_y,e_t_z))
+		#print("Current: {} Dest: {}".format([x_c,y_c,z_c],[x_f,y_f,z_f]))
+
+		if((abs(e_t_x) < self.errorThreshold * x_f) and (abs(e_t_y) < self.errorThreshold * y_f) and (abs(e_t_z) < self.errorThreshold * z_f)):
+			print("Stopping, error threshold {} : Final Coords: [{},{},{}]".format(self.errorThreshold,x_c,y_c,z_c))			
+			shouldStop = True 
+
+		return O_x,O_y,O_z,shouldStop
