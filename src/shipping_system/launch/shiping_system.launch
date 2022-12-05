@@ -12,5 +12,5 @@
 	</node>
 	
 	<!-- Launches the keyboard controller -->
-	<node name="shipping_system" pkg="shipping_system" type="shipping_system.py" required="true"/>
+	<!-- <node name="shipping_system" pkg="shipping_system" type="shipping_system.py" required="true"/> -->
 </launch>
