@@ -19,6 +19,9 @@ from ardrone_autonomy.msg import Navdata # for receiving navdata feedback
 # An enumeration of Drone Statuses
 from drone_status import DroneStatus
 
+# TF Libraries
+import tf2_ros
+from geometry_msgs.msg import Twist
 
 # Some Constants
 COMMAND_PERIOD = 100 #ms
@@ -88,3 +91,111 @@ class BasicDroneController(object):
 		if self.status == DroneStatus.Flying or self.status == DroneStatus.GotoHover or self.status == DroneStatus.Hovering:
 			self.pubCommand.publish(self.command)
 
+	# Basic Up and Down Flight
+	def run(self):
+		rate = rospy.Rate(1.0)
+		while not rospy.is_shutdown():
+			self.SendTakeoff()
+			rospy.sleep(1)
+			self.SendLand()
+			rate.sleep()
+	
+	def navigate(self, PID, source_frame, target_frame):
+		rate = rospy.Rate(10)
+		PID.setInitialTime(time.time())
+
+		tfBuffer = tf2_ros.Buffer()
+		tfListener = tf2_ros.TransformListener(tfBuffer)
+
+		while not rospy.is_shutdown():
+			rospy.sleep(1)
+			transform = tfBuffer.lookup_transform(source_frame, target_frame, rospy.Time())
+			x, y, z, Reached = PID.step(transform)
+			
+			if Reached:
+				break
+
+			self.SetCommand(x, y, 0)
+			self.SendCommand()
+			rate.sleep()
+
+import time
+class PIDController(object):
+	def __init__(self):
+		# self.iniState = iniState
+		self.K_I = 0.01
+		self.K_D = 0.5
+		self.K_P = 0.6
+		self.error_history = 0
+
+		self.errorThreshold = 0.05
+		self.last_error_x =0 
+		self.last_error_y =0 
+		self.last_error_z =0 
+
+		self.integral_x = 0
+		self.integral_y = 0
+		self.integral_z = 0
+
+	def setInitialTime(self,t=0):
+		self.last_time = t
+	
+	def step(self, transform):
+		shouldStop = False	
+		# z_c = currentState.pose.position.z
+		# y_c = currentState.pose.position.y
+		# x_c = currentState.pose.position.x
+
+		# z_f = finalState[2]
+		# y_f = finalState[1]
+		# x_f = finalState[0]
+
+		e_t_x = transform.translation.x # x_f - x_c
+		e_t_y = transform.translation.y # y_f - y_c
+		e_t_z = transform.translation.z # z_f - z_c
+
+		P_x = self.K_P * e_t_x 
+		P_y = self.K_P * e_t_y 
+		P_z = self.K_P * e_t_z 
+
+		self.current_time = time.time()
+
+		delta_time = self.current_time - self.last_time
+
+		
+		self.integral_x += e_t_x * delta_time
+		self.integral_y += e_t_y * delta_time	
+		self.integral_z += e_t_z * delta_time
+
+		
+
+		I_x = self.K_I * self.integral_x
+		I_y = self.K_I * self.integral_y
+		I_z = self.K_I * self.integral_z
+
+		der_x = (e_t_x - self.last_error_x) /delta_time
+		der_y = (e_t_y - self.last_error_y) /delta_time
+		der_z = (e_t_z - self.last_error_z) /delta_time
+
+		D_x = self.K_D * der_x
+		D_y = self.K_D * der_y
+		D_z = self.K_D * der_z
+		
+		self.last_time = self.current_time
+		self.last_error_x = e_t_x
+		self.last_error_y = e_t_y
+		self.last_error_z = e_t_z
+
+		O_x = P_x + I_x + D_x
+		O_y = P_y + I_y + D_y
+		O_z = P_z + I_z + D_z
+		
+		#print("Error: x:{} y:{} z:{}".format(e_t_x,e_t_y,e_t_z))
+		#print("Current: {} Dest: {}".format([x_c,y_c,z_c],[x_f,y_f,z_f]))
+
+		if((abs(e_t_x) < self.errorThreshold) and (abs(e_t_y) < self.errorThreshold)):
+			print("Stopping")			
+			shouldStop = True 
+
+		return O_x,O_y,O_z,shouldStop
+		
