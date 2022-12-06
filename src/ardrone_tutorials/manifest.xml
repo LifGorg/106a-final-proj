@@ -8,7 +8,7 @@
   <url>http://github.com/mikehamer/ardrone_tutorials</url>
 
   <depend package="ardrone_autonomy" />
-  <depend package="joy" />
+  <!--  <depend package="joy" /> -->
   
 </package>
 

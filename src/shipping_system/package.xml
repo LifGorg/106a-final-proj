@@ -50,11 +50,11 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>ardrone_autonomy</build_depend>
-  <build_depend>joy</build_depend>
+  <!-- <build_depend>joy</build_depend> -->
   <build_export_depend>ardrone_autonomy</build_export_depend>
-  <build_export_depend>joy</build_export_depend>
+  <!-- <build_export_depend>joy</build_export_depend> -->
   <exec_depend>ardrone_autonomy</exec_depend>
-  <exec_depend>joy</exec_depend>
+  <!--  <exec_depend>joy</exec_depend> -->
 
 
   <!-- The export tag contains other, unspecified, tags -->
