@@ -158,7 +158,7 @@ class PIDController(object):
 		# self.iniState = iniState
 		self.K_I = 0.01
 		self.K_D = 0.5
-		self.K_P = 0.6
+		self.K_P = 0.3
 		self.error_history = 0
 
 		self.errorThreshold = 0.15
@@ -196,9 +196,9 @@ class PIDController(object):
 		delta_time = self.current_time - self.last_time
 
 		
-		self.integral_x += e_t_x * delta_time
-		self.integral_y += e_t_y * delta_time	
-		self.integral_z += e_t_z * delta_time
+		self.integral_x = 0.8*self.integral_x + e_t_x * delta_time
+		self.integral_y = 0.8*self.integral_y + e_t_y * delta_time	
+		self.integral_z = 0.8*self.integral_z + e_t_z * delta_time
 
 		
 
