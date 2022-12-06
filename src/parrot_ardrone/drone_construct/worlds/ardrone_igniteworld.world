@@ -54,7 +54,9 @@
         <acceleration>0 0 0 0 -0 0</acceleration>
         <wrench>0 0 0 0 -0 0</wrench>
       </link>
-    </model><model name="nist_stairs_120">
+    </model>
+
+<model name="nist_stairs_120">
       <pose frame="">9.01164 2.82223 0 0 -0 0</pose>
       <link name="nist_stairs_120_link">
         <pose frame="">9.01164 2.82223 0 0 -0 0</pose>
@@ -62,7 +64,9 @@
         <acceleration>0 0 0 0 -0 0</acceleration>
         <wrench>0 0 0 0 -0 0</wrench>
       </link>
-    </model><model name="nist_elevated_floor_120">
+    </model>
+
+<model name="nist_elevated_floor_120">
       <pose frame="">9 4 0 0 -0 0</pose>
       <link name="nist_elevated_floor_120">
         <pose frame="">9 4 0 0 -0 0</pose>
@@ -70,7 +74,9 @@
         <acceleration>0 0 0 0 -0 0</acceleration>
         <wrench>0 0 0 0 -0 0</wrench>
       </link>
-    </model><model name="jersey_barrier">
+    </model>
+  
+<model name="jersey_barrier">
       <pose frame="">3 -3 0 0 -0 0</pose>
       <link name="link">
         <pose frame="">3 -3 0 0 -0 0</pose>
@@ -78,7 +84,9 @@
         <acceleration>0 0 0 0 -0 0</acceleration>
         <wrench>0 0 0 0 -0 0</wrench>
       </link>
-    </model><model name="grey_wall">
+    </model>
+    
+<model name="grey_wall">
       <pose frame="">10.402 7.71769 0 0 -0 0</pose>
       <link name="link">
         <pose frame="">10.402 7.71769 1.4 0 -0 0</pose>
@@ -86,7 +94,9 @@
         <acceleration>0 0 0 0 -0 0</acceleration>
         <wrench>0 0 0 0 -0 0</wrench>
       </link>
-    </model><model name="jersey_barrier_0">
+    </model>
+    
+<model name="jersey_barrier_0">
       <pose frame="">6 -1 0 0 -0 1.6</pose>
       <link name="link">
         <pose frame="">6 -1 0 0 -0 1.6</pose>
@@ -94,7 +104,9 @@
         <acceleration>0 0 0 0 -0 0</acceleration>
         <wrench>0 0 0 0 -0 0</wrench>
       </link>
-    </model><model name="nist">
+    </model>
+
+<model name="nist">
       <pose frame="">9.02578 4.02961 1.2 0 -0 1.6</pose>
       <link name="nist_maze_wall_triple_holes_120_link">
         <pose frame="">9.02578 4.02961 1.2 0 -0 1.6</pose>
@@ -102,7 +114,9 @@
         <acceleration>0 0 0 0 -0 0</acceleration>
         <wrench>0 0 0 0 -0 0</wrench>
       </link>
-    </model></state> -->
+    </model>
+    
+</state> -->
     <gui fullscreen="0">
       <camera name="user_camera">
         <pose>1.49016 -3.72367 3.62379 -2.88294e-17 0.273797 1.4042</pose>
@@ -437,7 +451,10 @@
       <gravity>1</gravity>
     </link>
     <pose frame="">9.01164 2.82223 0 0 -0 0</pose>
-  </model><model name="nist_maze_wall_240">
+  </model>
+  
+  <!--
+  <model name="nist_maze_wall_240">
     <static>1</static>
     <link name="nist__maze_wall_240_link">
       <pose frame="">0 0 0 0 -0 0</pose>
@@ -476,7 +493,10 @@
       <gravity>1</gravity>
     </link>
     <pose frame="">9 4 0 0 -0 0</pose>
-  </model><model name="nist_elevated_floor_120">
+  </model>
+  -->
+
+  <model name="nist_elevated_floor_120">
     <static>1</static>
     <link name="nist_elevated_floor_120">
       <pose frame="">0 0 0 0 -0 0</pose>
@@ -515,7 +535,10 @@
       <gravity>1</gravity>
     </link>
     <pose frame="">9 4 0 0 -0 0</pose>
-  </model><model name="nist">
+  </model>
+  
+  <!--
+  <model name="nist">
     <static>1</static>
     <link name="nist_maze_wall_triple_holes_120_link">
       <pose frame="">0 0 0 0 -0 0</pose>
@@ -554,7 +577,11 @@
       <gravity>1</gravity>
     </link>
     <pose frame="">9.02578 4.02961 1.2 0 -0 0</pose>
-  </model><model name="jersey_barrier_0">
+  </model>
+  -->
+
+  
+  <model name="jersey_barrier_0">
     <static>1</static>
     <link name="link">
       <visual name="visual">
