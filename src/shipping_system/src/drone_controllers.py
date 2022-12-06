@@ -107,14 +107,14 @@ class BasicDroneController(object):
 			rate.sleep()
 	
 	def navigate(self, PID, source_frame, target_frame):
-		rate = rospy.Rate(10)
 		PID.setInitialTime(time.time())
 
 		tfBuffer = tf2_ros.Buffer()
 		tfListener = tf2_ros.TransformListener(tfBuffer)
-
+		
+		rate = rospy.Rate(1.0)
+		
 		while not rospy.is_shutdown():
-			rospy.sleep(1)
 			e_x, e_y = self.get_error(source_frame, target_frame)
 			x, y, z, Reached = PID.step(e_x, e_y, 0)
 			
@@ -132,7 +132,7 @@ class BasicDroneController(object):
 		z = quad_coordinates.pose.position.z
 		y = quad_coordinates.pose.position.y
 		x = quad_coordinates.pose.position.x
-		# print(quad_coordinates)
+		print(model_name, quad_coordinates)
 		return quad_coordinates
 
 	def get_error(self, source_frame, target_frame):
@@ -161,7 +161,7 @@ class PIDController(object):
 		self.K_P = 0.6
 		self.error_history = 0
 
-		self.errorThreshold = 0.05
+		self.errorThreshold = 0.15
 		self.last_error_x =0 
 		self.last_error_y =0 
 		self.last_error_z =0 
@@ -169,6 +169,9 @@ class PIDController(object):
 		self.integral_x = 0
 		self.integral_y = 0
 		self.integral_z = 0
+
+		self.vel_max = 0.7
+		self.vel_scale = 1
 
 	def setInitialTime(self,t=0):
 		self.last_time = t
@@ -220,6 +223,9 @@ class PIDController(object):
 		O_y = P_y + I_y + D_y
 		O_z = P_z + I_z + D_z
 		
+		O_x = max(-self.vel_max, min(self.vel_max, O_x * self.vel_scale))
+		O_y = max(-self.vel_max, min(self.vel_max, O_y * self.vel_scale))
+		O_z = max(-self.vel_max, min(self.vel_max, O_z * self.vel_scale))
 		print("Error: x:{} y:{} z:{}".format(e_t_x,e_t_y,e_t_z))
 		#print("Current: {} Dest: {}".format([x_c,y_c,z_c],[x_f,y_f,z_f]))
 

@@ -48,9 +48,9 @@ if __name__=='__main__':
 		drone_frame = "ar_marker_1"
 		landing_zone = "landing frame"
 	else:
-		payload_frame = "payload1"
+		payload_frame = "nist_elevated_floor_120"
 		dropoff_frame = "dropoff frame"
-		drone_frame = "quadrotor"
+		drone_frame = "sjtu_drone"
 		landing_zone = "landing frame"
 	
 	# Firstly we setup a ros node, so that we can communicate with the other packages
@@ -69,12 +69,18 @@ if __name__=='__main__':
 	time.sleep(5)
 	drone.status = DroneStatus.Flying
 	drone.SetCommand(0, 0, 0, 0)
+	
+	print("Hovering")
+	time.sleep(5)
 
 	# Navigate to first payload
 	print("Navigating to first payload")
 	drone.navigate(navigator, drone_frame, payload_frame)
 	time.sleep(1)	
 	drone.SetCommand(0, 0, 0, 0)
+	
+	print("Hovering")
+	time.sleep(5)
 
 	# # Descend down
 	# drone.Descend()
