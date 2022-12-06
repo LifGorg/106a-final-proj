@@ -25,31 +25,31 @@ from geometry_msgs.msg import Twist
 
 # Some Constants
 COMMAND_PERIOD = 100 #ms
-
+import time
 
 class BasicDroneController(object):
-	def __init__(self):
+	def __init__(self, topic_name):
 		# Holds the current drone status
-		self.status = -1
+		self.status = DroneStatus.Landed
 
 		# Subscribe to the /ardrone/navdata topic, of message type navdata, and call self.ReceiveNavdata when a message is received
-		self.subNavdata = rospy.Subscriber('/ardrone/navdata',Navdata,self.ReceiveNavdata) 
+		self.subNavdata = rospy.Subscriber('/' + topic_name + '/navdata',Navdata,self.ReceiveNavdata) 
 		self.altitude = -1
 		
 		# Allow the controller to publish to the /ardrone/takeoff, land and reset topics
-		self.pubLand    = rospy.Publisher('/ardrone/land',Empty)
-		self.pubTakeoff = rospy.Publisher('/ardrone/takeoff',Empty)
-		self.pubReset   = rospy.Publisher('/ardrone/reset',Empty)
+		self.pubLand    = rospy.Publisher('/' + topic_name + '/land', Empty, queue_size=10)
+		self.pubTakeoff = rospy.Publisher('/' + topic_name + '/takeoff', Empty, queue_size=10)
+		self.pubReset   = rospy.Publisher('/' + topic_name + '/reset', Empty, queue_size=10)
 		
 		# Allow the controller to publish to the /cmd_vel topic and thus control the drone
-		self.pubCommand = rospy.Publisher('/cmd_vel',Twist)
+		self.pubCommand = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
 
 		# Setup regular publishing of control packets
 		self.command = Twist()
 		self.commandTimer = rospy.Timer(rospy.Duration(COMMAND_PERIOD/1000.0),self.SendCommand)
 
 		# Land the drone if we are shutting down
-		rospy.on_shutdown(self.SendLand)
+#		rospy.on_shutdown(self.SendLand)
 
 	def ReceiveNavdata(self,navdata):
 		# Although there is a lot of data in this packet, we're only interested in the state at the moment	
@@ -59,8 +59,9 @@ class BasicDroneController(object):
 	def SendTakeoff(self):
 		# Send a takeoff message to the ardrone driver
 		# Note we only send a takeoff message if the drone is landed - an unexpected takeoff is not good!
-		if(self.status == DroneStatus.Landed):
-			self.pubTakeoff.publish(Empty())
+		print("in the takeoff function", self.status)
+		self.pubTakeoff.publish(Empty())
+
 
 	def SendLand(self):
 		# Send a landing message to the ardrone driver
@@ -77,6 +78,7 @@ class BasicDroneController(object):
 
 	def SendEmergency(self):
 		# Send an emergency (or reset) message to the ardrone driver
+		print("in the emergency function")
 		self.pubReset.publish(Empty())
 
 	def SetCommand(self,roll=0,pitch=0,yaw_velocity=0,z_velocity=0):
@@ -120,7 +122,6 @@ class BasicDroneController(object):
 			# this is automatically called self.SendCommand()
 			rate.sleep()
 
-import time
 class PIDController(object):
 	def __init__(self):
 		# self.iniState = iniState

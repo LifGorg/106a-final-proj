@@ -13,7 +13,7 @@ import roslib; roslib.load_manifest('ardrone_tutorials')
 import rospy
 
 # Load the DroneController class, which handles interactions with the drone
-from drone_controller import BasicDroneController, PIDController
+from drone_controllers import BasicDroneController, PIDController
 
 
 # TF Libraries
@@ -24,15 +24,21 @@ import time
 
 import signal
 
+import sys
+
 COMMAND_PERIOD = 100 #ms
 
 def exit_handler(signum, frame):
+ 	print("Emergency")
 	drone.SendEmergency()
 	time.sleep(2)
 	exit(1)
 	
 # Setup the application
 if __name__=='__main__':
+	topic_name = "ardrone"
+	if len(sys.argv) > 1:
+		topic_name = sys.argv[1]
 
 	signal.signal(signal.SIGINT, exit_handler)
 
@@ -45,17 +51,26 @@ if __name__=='__main__':
 	rospy.init_node('ardrone_shipping_system')
 
 	# Create controller to communicate with the drone
-	drone = BasicDroneController()
+	drone = BasicDroneController(topic_name)
 	# Create PDI controller to navigate drone
 	navigator = PIDController()
 
+	time.sleep(10)
+
 	# Take off
+	print("Taking off")
 	drone.SendTakeoff()
 
 	time.sleep(5)
-
+	drone.status = DroneStatus.Flying
+#	while True:
+#		continue
 	# Navigate to first payload
-	drone.navigate(navigator, drone_frame, payload_frame)
+	# print("Navigating to first payload")
+	# drone.navigate(navigator, drone_frame, payload_frame)
+	drone.SetCommand(1, 1, 0, 0)
+	
+	time.sleep(5)	
 
 	drone.SetCommand(0, 0, 0, 0)
 
