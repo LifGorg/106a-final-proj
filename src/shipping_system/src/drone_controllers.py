@@ -11,6 +11,8 @@
 import roslib; roslib.load_manifest('ardrone_tutorials')
 import rospy
 
+from gazebo_msgs.srv import GetModelState
+
 # Import the messages we're interested in sending and receiving
 from geometry_msgs.msg import Twist  	 # for sending commands to the drone
 from std_msgs.msg import Empty       	 # for land/takeoff/emergency
@@ -31,6 +33,8 @@ class BasicDroneController(object):
 	def __init__(self, topic_name):
 		# Holds the current drone status
 		self.status = DroneStatus.Landed
+		
+		self.topic_name = topic_name
 
 		# Subscribe to the /ardrone/navdata topic, of message type navdata, and call self.ReceiveNavdata when a message is received
 		self.subNavdata = rospy.Subscriber('/' + topic_name + '/navdata',Navdata,self.ReceiveNavdata) 
@@ -111,8 +115,8 @@ class BasicDroneController(object):
 
 		while not rospy.is_shutdown():
 			rospy.sleep(1)
-			transform = tfBuffer.lookup_transform(source_frame, target_frame, rospy.Time())
-			x, y, z, Reached = PID.step(transform)
+			e_x, e_y = self.get_error(source_frame, target_frame)
+			x, y, z, Reached = PID.step(e_x, e_y, 0)
 			
 			if Reached:
 				break
@@ -121,6 +125,33 @@ class BasicDroneController(object):
 			self.SetCommand(y, x, 0)
 			# this is automatically called self.SendCommand()
 			rate.sleep()
+	
+	def getGazeboState(self, model_name):
+		model_coordinates = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
+		quad_coordinates = model_coordinates(model_name,'')
+		z = quad_coordinates.pose.position.z
+		y = quad_coordinates.pose.position.y
+		x = quad_coordinates.pose.position.x
+		# print(quad_coordinates)
+		return quad_coordinates
+
+	def get_error(self, source_frame, target_frame):
+		if self.topic_name == "ardrone": # real drone
+			transform = tfBuffer.lookup_transform(source_frame, target_frame, rospy.Time())
+			e_t_x = transform.transform.translation.x # x_f - x_c
+			e_t_y = transform.transform.translation.y # y_f - y_c
+			# e_t_z = transform.transform.translation.z # z_f - z_c
+			return e_t_x, e_t_y
+		else: # in simulator
+			source_coordinates = self.getGazeboState(source_frame)
+			target_coordinates = self.getGazeboState(target_frame)
+
+			e_t_x = target_coordinates.pose.position.x - source_coordinates.pose.position.x
+			e_t_y = target_coordinates.pose.position.y - source_coordinates.pose.position.y
+
+			return e_t_x, e_t_y
+
+			
 
 class PIDController(object):
 	def __init__(self):
@@ -142,7 +173,7 @@ class PIDController(object):
 	def setInitialTime(self,t=0):
 		self.last_time = t
 	
-	def step(self, transform):
+	def step(self, e_t_x, e_t_y, e_t_z):
 		shouldStop = False	
 		# z_c = currentState.pose.position.z
 		# y_c = currentState.pose.position.y
@@ -151,10 +182,6 @@ class PIDController(object):
 		# z_f = finalState[2]
 		# y_f = finalState[1]
 		# x_f = finalState[0]
-
-		e_t_x = transform.transform.translation.x # x_f - x_c
-		e_t_y = transform.transform.translation.y # y_f - y_c
-		e_t_z = transform.transform.translation.z # z_f - z_c
 
 
 		P_x = self.K_P * e_t_x 

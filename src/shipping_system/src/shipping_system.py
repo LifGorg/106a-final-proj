@@ -42,10 +42,16 @@ if __name__=='__main__':
 
 	signal.signal(signal.SIGINT, exit_handler)
 
-	payload_frame = "ar_marker_2"
-	dropoff_frame = "dropoff frame"
-	drone_frame = "ar_marker_1"
-	landing_zone = "landing frame"
+	if topic_name == "ardrone":
+		payload_frame = "ar_marker_2"
+		dropoff_frame = "dropoff frame"
+		drone_frame = "ar_marker_1"
+		landing_zone = "landing frame"
+	else:
+		payload_frame = "payload1"
+		dropoff_frame = "dropoff frame"
+		drone_frame = "quadrotor"
+		landing_zone = "landing frame"
 	
 	# Firstly we setup a ros node, so that we can communicate with the other packages
 	rospy.init_node('ardrone_shipping_system')
@@ -60,21 +66,15 @@ if __name__=='__main__':
 	# Take off
 	print("Taking off")
 	drone.SendTakeoff()
-
 	time.sleep(5)
 	drone.status = DroneStatus.Flying
-#	while True:
-#		continue
-	# Navigate to first payload
-	# print("Navigating to first payload")
-	# drone.navigate(navigator, drone_frame, payload_frame)
-	drone.SetCommand(1, 1, 0, 0)
-	
-	time.sleep(5)	
-
 	drone.SetCommand(0, 0, 0, 0)
 
-	time.sleep(5)
+	# Navigate to first payload
+	print("Navigating to first payload")
+	drone.navigate(navigator, drone_frame, payload_frame)
+	time.sleep(1)	
+	drone.SetCommand(0, 0, 0, 0)
 
 	# # Descend down
 	# drone.Descend()
@@ -92,4 +92,8 @@ if __name__=='__main__':
 	# navigator.navigate_to(drone_frame, landing_zone)
 
 	# Land
+	print("Landing Drone")
 	drone.SendLand()
+	time.sleep(5)
+
+	rospy.signal_shutdown('All Done!')
