@@ -114,9 +114,10 @@ class BasicDroneController(object):
 			
 			if Reached:
 				break
-
-			self.SetCommand(x, y, 0)
-			self.SendCommand()
+			# pitch = 1 -> forward
+			# roll = 1 -> left
+			self.SetCommand(y, x, 0)
+			# this is automatically called self.SendCommand()
 			rate.sleep()
 
 import time
@@ -150,9 +151,10 @@ class PIDController(object):
 		# y_f = finalState[1]
 		# x_f = finalState[0]
 
-		e_t_x = transform.translation.x # x_f - x_c
-		e_t_y = transform.translation.y # y_f - y_c
-		e_t_z = transform.translation.z # z_f - z_c
+		e_t_x = transform.transform.translation.x # x_f - x_c
+		e_t_y = transform.transform.translation.y # y_f - y_c
+		e_t_z = transform.transform.translation.z # z_f - z_c
+
 
 		P_x = self.K_P * e_t_x 
 		P_y = self.K_P * e_t_y 
@@ -190,12 +192,12 @@ class PIDController(object):
 		O_y = P_y + I_y + D_y
 		O_z = P_z + I_z + D_z
 		
-		#print("Error: x:{} y:{} z:{}".format(e_t_x,e_t_y,e_t_z))
+		print("Error: x:{} y:{} z:{}".format(e_t_x,e_t_y,e_t_z))
 		#print("Current: {} Dest: {}".format([x_c,y_c,z_c],[x_f,y_f,z_f]))
 
 		if((abs(e_t_x) < self.errorThreshold) and (abs(e_t_y) < self.errorThreshold)):
 			print("Stopping")			
 			shouldStop = True 
-
+		print("Output velocity: O_x:{} O_y:{} O_z:{}".format(O_x,O_y,O_z))
 		return O_x,O_y,O_z,shouldStop
 		
