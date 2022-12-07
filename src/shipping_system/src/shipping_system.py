@@ -48,10 +48,10 @@ if __name__=='__main__':
 		drone_frame = "ar_marker_2"
 		landing_zone = "landing frame"
 	else:
-		payload_frame = "nist_elevated_floor_120"
-		dropoff_frame = "dropoff frame"
+		payload_frame = "payload1"
+		dropoff_frame = "dropoff1"
 		drone_frame = "sjtu_drone"
-		landing_zone = "landing frame"
+		landing_zone = "nist_elevated_floor_120"
 	
 	# Firstly we setup a ros node, so that we can communicate with the other packages
 	rospy.init_node('ardrone_shipping_system')
@@ -66,37 +66,49 @@ if __name__=='__main__':
 	# Take off
 	print("Taking off")
 	drone.SendTakeoff()
-	time.sleep(5)
+	time.sleep(8)
 	drone.status = DroneStatus.Flying
 	drone.SetCommand(0, 0, 0, 0)
 	
 	print("Hovering")
-	time.sleep(0.5)
+	time.sleep(2)
 
 	# Navigate to first payload
 	print("Navigating to first payload")
 	drone.navigate(navigator, drone_frame, payload_frame)
-	time.sleep(0.5)	
+#	time.sleep(0.5)	
 	drone.SetCommand(0, 0, 0, 0)
 	
 	print("Hovering")
-	time.sleep(0.5)
+	time.sleep(3)
 
 	# # Descend down
-	# drone.Descend()
+	print("Descend")
+	drone.Descend()
+
+	print("Hovering")
+        time.sleep(3)
 
 	# Enable gripper
-	# Ascend	
-	# controller.Ascend()
+	# Ascend
+	print("Ascend")	
+	drone.Ascend()
 	
 	# # Navigate to drop-off
-	# navigator.navigate_to(drone_frame, dropoff_frame)
-
+	print("Navigating to Dropoff")
+	navigator = PIDController()
+	drone.navigate(navigator, drone_frame, dropoff_frame)
+	drone.SetCommand(0, 0, 0, 0)
+	time.sleep(5)
 	# # Disable gripper
 
 	# # Navigate to landing spot
-	# navigator.navigate_to(drone_frame, landing_zone)
-
+	print("Navigating to Landing")
+	navigator = PIDController()
+	drone.navigate(navigator, drone_frame, landing_zone)
+	drone.SetCommand(0, 0, 0, 0)
+	time.sleep(3)
+	
 	# Land
 	print("Landing Drone")
 	drone.SendLand()

@@ -63,7 +63,6 @@ class BasicDroneController(object):
 	def SendTakeoff(self):
 		# Send a takeoff message to the ardrone driver
 		# Note we only send a takeoff message if the drone is landed - an unexpected takeoff is not good!
-		print("in the takeoff function", self.status)
 		self.pubTakeoff.publish(Empty())
 
 
@@ -72,17 +71,24 @@ class BasicDroneController(object):
 		# Note we send this in all states, landing can do no harm
 		self.pubLand.publish(Empty())
 
+	def GetAltitude(self):
+		if self.topic_name == "ardrone":
+			return self.altitude
+		else:
+			return self.getGazeboState("sjtu_drone").pose.position.z
+
 	def Descend(self):
-		while self.altitude > 10:
+		while self.GetAltitude() > 1:
 			self.SetCommand(roll=0, pitch=0, yaw_velocity=0, z_velocity=-1)
+		self.SetCommand(0, 0, 0, 0)
 
 	def Ascend(self):
-		while self.altitude < 100:
+		while self.GetAltitude() < 2:
 			self.SetCommand(roll=0, pitch=0, yaw_velocity=0, z_velocity=1)
+		self.SetCommand(0, 0, 0, 0)
 
 	def SendEmergency(self):
 		# Send an emergency (or reset) message to the ardrone driver
-		print("in the emergency function")
 		self.pubReset.publish(Empty())
 
 	def SetCommand(self,roll=0,pitch=0,yaw_velocity=0,z_velocity=0):
@@ -118,8 +124,6 @@ class BasicDroneController(object):
 			try:
 				e_x, e_y = self.get_error(source_frame, target_frame)
 				x, y, z, Reached = PID.step(e_x, e_y, 0)
-				print("ex:",e_x)
-				print(" ,",x, y)
 				if Reached:
 					break
 			# pitch = 1 -> forward
@@ -137,7 +141,6 @@ class BasicDroneController(object):
 		z = quad_coordinates.pose.position.z
 		y = quad_coordinates.pose.position.y
 		x = quad_coordinates.pose.position.x
-		print(model_name, quad_coordinates)
 		return quad_coordinates
 
 	def get_error(self, source_frame, target_frame):
