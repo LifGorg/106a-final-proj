@@ -43,9 +43,9 @@ if __name__=='__main__':
 	signal.signal(signal.SIGINT, exit_handler)
 
 	if topic_name == "ardrone":
-		payload_frame = "ar_marker_2"
+		payload_frame = "ar_marker_1"
 		dropoff_frame = "dropoff frame"
-		drone_frame = "ar_marker_1"
+		drone_frame = "ar_marker_2"
 		landing_zone = "landing frame"
 	else:
 		payload_frame = "nist_elevated_floor_120"
@@ -71,16 +71,16 @@ if __name__=='__main__':
 	drone.SetCommand(0, 0, 0, 0)
 	
 	print("Hovering")
-	time.sleep(5)
+	time.sleep(0.5)
 
 	# Navigate to first payload
 	print("Navigating to first payload")
 	drone.navigate(navigator, drone_frame, payload_frame)
-	time.sleep(1)	
+	time.sleep(0.5)	
 	drone.SetCommand(0, 0, 0, 0)
 	
 	print("Hovering")
-	time.sleep(5)
+	time.sleep(0.5)
 
 	# # Descend down
 	# drone.Descend()

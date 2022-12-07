@@ -115,15 +115,20 @@ class BasicDroneController(object):
 		rate = rospy.Rate(1.0)
 		
 		while not rospy.is_shutdown():
-			e_x, e_y = self.get_error(source_frame, target_frame)
-			x, y, z, Reached = PID.step(e_x, e_y, 0)
-			
-			if Reached:
-				break
+			try:
+				e_x, e_y = self.get_error(source_frame, target_frame)
+				x, y, z, Reached = PID.step(e_x, e_y, 0)
+				print("ex:",e_x)
+				print(" ,",x, y)
+				if Reached:
+					break
 			# pitch = 1 -> forward
 			# roll = 1 -> left
-			self.SetCommand(y, x, 0)
+				self.SetCommand(y, x, 0)
 			# this is automatically called self.SendCommand()
+			except Exception as e:
+				print(e)
+				print("Skipped a frame", source_frame, target_frame)	
 			rate.sleep()
 	
 	def getGazeboState(self, model_name):
@@ -137,6 +142,10 @@ class BasicDroneController(object):
 
 	def get_error(self, source_frame, target_frame):
 		if self.topic_name == "ardrone": # real drone
+			tfBuffer = tf2_ros.Buffer()
+	                tfListener = tf2_ros.TransformListener(tfBuffer)
+
+			
 			transform = tfBuffer.lookup_transform(source_frame, target_frame, rospy.Time())
 			e_t_x = transform.transform.translation.x # x_f - x_c
 			e_t_y = transform.transform.translation.y # y_f - y_c
